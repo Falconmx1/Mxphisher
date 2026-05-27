@@ -13,3 +13,16 @@
 - 💾 **Logging automático**: Guarda IP, User-Agent, geolocalización aproximada y credenciales en formato JSON.
 
 > **⚠️ ADVERTENCIA:** Esta herramienta es solo para entornos autorizados y pruebas de seguridad. El mal uso está penado por la ley mexicana (Ley Federal de Ciberseguridad). ¡No seas 🐀!
+
+🎨 Preview del Banner (para que te antojes)
+
+╔══════════════════════════════════════════════════════════╗
+║      ███╗   ███╗██╗  ██╗██████╗ ██╗  ██╗██╗███████╗██╗   ║
+║      ████╗ ████║╚██╗██╔╝██╔══██╗██║  ██║██║██╔════╝██║   ║
+║      ██╔████╔██║ ╚███╔╝ ██████╔╝███████║██║███████╗██║   ║
+║      ██║╚██╔╝██║ ██╔██╗ ██╔═══╝ ██╔══██║██║╚════██║╚═╝   ║
+║      ██║ ╚═╝ ██║██╔╝ ██╗██║     ██║  ██║██║███████║██╗   ║
+║      ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝╚═╝╚══════╝╚═╝   ║
+║            🌵 PHISHING CON SAZÓN MEXICANO 🌮              ║
+║       [v1.0]  |  @ElMxphisher  |  #SoloParaPentesting     ║
+╚══════════════════════════════════════════════════════════╝
