@@ -1,0 +1,20 @@
+# Logs y datos capturados
+logs/
+*.json
+*.txt
+*.log
+
+# Entornos virtuales
+venv/
+__pycache__/
+*.pyc
+
+# Configuraciones locales
+config.local
+*.env
+
+# Binarios y basura
+*.exe
+*.zip
+.DS_Store
+Thumbs.db
